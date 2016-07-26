@@ -24,7 +24,7 @@ Next byte value presents simple type code: <br/>
 <br/>
 And scheme will be next: <br/>
 <b>0x0000 | Simple Type Code (1 byte) | Value bytes (in accordance with previous part)<br/></b>
-For String: <b>Two Zero Bytes | Simple Type Code (1 byte) | String length (4 bytes) | String bytes (in accordance with previous part)<br/></b>
+For String: <b>0x0000 | Simple Type Code (1 byte) | String length (4 bytes) | String bytes (in accordance with previous part)<br/></b>
 <br/>
 If object type is array, object type name length will have value 0x0001.<br/>
 <br/>
