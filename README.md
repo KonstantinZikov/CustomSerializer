@@ -14,3 +14,6 @@ Next byte value presents simple type code:
   0x1 - Byte
   0x1 - Byte
   0x1 - Byte
+  0x1 - Byte
+  0x1 - Byte
+  0x1 - Byte
