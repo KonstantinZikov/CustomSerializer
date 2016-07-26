@@ -6,6 +6,7 @@ Serialized object will be present in accordance with the scheme: <br/>
 <b>Object type name length (2 bytes) | Object type name (in accordance with previous part) | All field values in accordance with the scheme. <br/></b>
 <br/>
 If object type is simple (int, bool , etc.)  or string, object type name length will have value 0x0000. <br/>
+<br/>
 Next byte value presents simple type code: <br/>
   0x00 - Byte <br/>
   0x01 - SByte <br/>
