@@ -57,9 +57,7 @@ namespace CustomSerializer
                 else
                 {
                     string typeName = type.FullName;
-
-                    
-
+                  
                     // Write type name
                     var typeNameBytes = Encoding.Unicode.GetBytes(typeName);
 
@@ -80,6 +78,31 @@ namespace CustomSerializer
                     }
                 }
                 
+            }
+            if (type.BaseType == typeof(Array))
+            {
+                // Value 01 means that type is array.
+                stream.Write(BitConverter.GetBytes((short)1), 0, 2);
+               
+                var arrayType = type.GetElementType().FullName;
+                var arrayTypeBytes = Encoding.Unicode.GetBytes(arrayType);
+
+                // Write array type length
+                short arrayTypeLength = (short)arrayTypeBytes.Length;
+                var arrayTypeLengthBytes = BitConverter.GetBytes(arrayTypeLength);
+                stream.Write(arrayTypeLengthBytes, 0, arrayTypeLengthBytes.Length);
+
+                // Write array type
+                stream.Write(arrayTypeBytes, 0, arrayTypeLength);
+
+                // Write length
+                int size = (obj as Array).Length;
+                stream.Write(BitConverter.GetBytes(size), 0, 4);
+
+                foreach (var element in (obj as Array))
+                {
+                    SerializeRecursive(element,stream);
+                }
             }
         }
 
@@ -170,6 +193,10 @@ namespace CustomSerializer
             if (length == 0)
             {
                 return DeserializeSimple(stream);
+            }
+            if (length == 1)
+            {
+                return DeserializeArray(stream);
             }
             var typeBuffer = new byte[length];
             stream.Read(typeBuffer, 0, length);
@@ -269,6 +296,55 @@ namespace CustomSerializer
                     break;
             }
             return result;
+        }
+
+        private static object DeserializeArray(Stream stream)
+        {
+            // Read length of type
+            var shortBuffer = new byte[2];
+            stream.Read(shortBuffer, 0, 2);
+            var typeLength = BitConverter.ToInt16(shortBuffer, 0);
+
+            // Read type
+
+            var typeBuffer = new byte[typeLength];
+            stream.Read(typeBuffer, 0, typeLength);
+            string typeName = Encoding.Unicode.GetString(typeBuffer);
+            var asms = AppDomain.CurrentDomain.GetAssemblies();
+            IEnumerable<Type> types = null;
+            foreach (var assembly in asms)
+            {
+                types = assembly.GetTypes().Where(t => t.FullName == typeName);
+                if (types.Count() != 0)
+                {
+                    break;
+                }
+            }
+            if (types.Count() == 0)
+            {
+                throw new InvalidOperationException($"Can't find type {typeName} in current assembly.");
+            }
+            var type = types.First();
+
+
+            // Read Length
+
+            var intBuffer = new byte[4];
+            stream.Read(intBuffer, 0, 4);
+            var length = BitConverter.ToInt32(intBuffer, 0);
+
+            // Read Elements
+            var arrayType = type.MakeArrayType();
+            Array arr = Activator.CreateInstance(arrayType, new object[] { length }) as Array;
+
+            for (int i = 0; i < length; i++)
+            {
+                var element = DeserializeRecursive(stream);
+                arr.SetValue(element, i);
+            }
+
+            return arr;
+
         }
 
         private static List<FieldInfo> GetAllFields(this Type type)

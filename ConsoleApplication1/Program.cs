@@ -52,23 +52,19 @@ namespace ConsoleApplication1
 
         static void Main(string[] args)
         {
-            s s1 = new s();
-            s1.Hello = "OLOLO";
-            B b1 = new B();
-            b1.a = 42;
-            b1.c = 333;
-            b1.t = new T();
-            b1.e = s1;
-
-
-            Console.WriteLine(b1.GetType().FullName);
-            Console.WriteLine(b1.Get());
+            int[] arr = new int[]
+            {
+                5,4,3,2,1
+            };
             using (var ms = new MemoryStream())
             {
-                Serializer.Serialize(b1, ms);
+                Serializer.Serialize(arr, ms);
                 ms.Seek(0, SeekOrigin.Begin);
-                B b2 = Serializer.Deserialize(ms) as B;
-                Console.WriteLine(b2.Get());
+                var arr2 = Serializer.Deserialize(ms) as int[];
+                foreach(int i in arr2)
+                {
+                    Console.WriteLine(i);
+                }
             }
             Console.ReadKey();    
 
